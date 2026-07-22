@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diário de Bordo Motorista Seaway</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #f0f2f5; color: #333; padding: 15px; max-width: 500px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        h1 { text-align: center; color: #1a365d; font-size: 1.4em; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 20px; }
+        
+        .info-box { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; }
+        .info-item { text-align: center; background: #e2e8f0; padding: 10px; border-radius: 8px; flex: 1; margin: 0 5px; }
+        .info-label { font-size: 0.75em; color: #666; text-transform: uppercase; }
+        .info-value { font-size: 1.2em; color: #1a365d; margin-top: 4px; }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; color: #4a5568; }
+        input[type="number"], input[type="text"], textarea { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 1.1em; text-align: center; }
+        input:focus, textarea:focus { border-color: #3182ce; outline: none; }
+        textarea { text-align: left; min-height: 100px; font-size: 0.95em; }
+
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: transform 0.1s; margin-bottom: 10px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-start { background: #38a169; color: white; }
+        .btn-end { background: #e53e3e; color: white; }
+        .btn-mall { background: #3182ce; color: white; display: inline-block; width: 48%; margin: 1%; padding: 14px 5px; font-size: 0.95em; }
+        .btn-report { background: #805ad5; color: white; }
+        .btn-reset { background: #718096; color: white; }
+
+        .mall-grid { display: flex; flex-wrap: wrap; justify-content: center; margin: 15px 0; }
+        
+        .log-list { list-style: none; margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        .log-item { background: #f7fafc; border-left: 4px solid #3182ce; padding: 10px; margin-bottom: 8px; border-radius: 4px; font-size: 0.9em; display: flex; justify-content: space-between; }
+        
+        .hidden { display: none !important; }
+        .error { color: #e53e3e; font-size: 0.85em; margin-top: 5px; display: none; }
+        .success-msg { background: #c6f6d5; color: #22543d; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Diário de Bordo Motorista Seaway</h1>
+        <p class="subtitle" id="currentDate">--/--/----</p>
+        <div id="successMsg" class="success-msg"></div>
+
+        <!-- TELA 1: INÍCIO -->
+        <div id="screenStart">
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">Duração</div>
+                    <div class="info-value" id="displayDuration">--:--</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>🚗 KM Inicial do Veículo:</label>
+                <input type="number" id="kmInitial" placeholder="Ex: 45120">
+            </div>
+            <button class="btn btn-start" onclick="startDiary()">🟢 INÍCIO DA DIÁRIA</button>
+        </div>
+
+        <!-- TELA 2: ATIVA (REGISTRO) -->
+        <div id="screenActive" class="hidden">
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">Início</div>
+                    <div class="info-value" id="displayStartTime">--:--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Duração</div>
+                    <div class="info-value" id="displayDurationActive">00:00</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>📦 Quantidade de Caixas:</label>
+                <input type="number" id="boxCount" placeholder="Digite a qtd." min="1">
+                <div id="boxError" class="error">Informe a quantidade de caixas.</div>
+            </div>
+
+            <div class="mall-grid">
+                <button class="btn btn-mall" onclick="registerMall('Iguatemi')">🏬 Iguatemi</button>
+                <button class="btn btn-mall" onclick="registerMall('Norte')">🏬 Norte</button>
+                <button class="btn btn-mall" onclick="registerMall('Guararapes')">🏬 Guararapes</button>
+                <button class="btn btn-mall" onclick="registerMall('Recife 01')">🏬 Recife 01</button>
+                <button class="btn btn-mall" onclick="registerMall('New Mar')">🏬 New Mar</button>
+                <button class="btn btn-mall" onclick="registerMall('Rio Mar')">🏬 Rio Mar</button>
+                <button class="btn btn-mall" onclick="registerMall('Tacaruna')">🏬 Tacaruna</button>
+                <button class="btn btn-mall" onclick="registerMall('Patteo')">🏬 Patteo</button>
+                <button class="btn btn-mall" onclick="registerMall('Plaza')">🏬 Plaza</button>
+            </div>
+
+            <ul id="logList" class="log-list"></ul>
+
+            <button class="btn btn-end" onclick="showEndScreen()" style="margin-top: 20px;">🔴 TÉRMINO DA DIÁRIA</button>
+        </div>
+
+        <!-- TELA 3: FINALIZAÇÃO -->
+        <div id="screenEnd" class="hidden">
+            <div class="info-box">
+                <div class="info-item">
+                    <div class="info-label">Duração Total</div>
+                    <div class="info-value" id="displayFinalDuration" style="color: #e53e3e; font-size: 1.4em;">--:--</div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>🚗 KM Final do Veículo:</label>
+                <input type="number" id="kmFinal" placeholder="Ex: 45250">
+            </div>
+
+            <div class="input-group">
+                <label>Houve alguma observação importante?</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn" style="flex:1; background:#e2e8f0;" onclick="toggleObs(true)">Sim</button>
+                    <button class="btn" style="flex:1; background:#e2e8f0;" onclick="toggleObs(false)">Não</button>
+                </div>
+                <textarea id="obsText" class="hidden" placeholder="Descreva a ocorrência (mínimo 120 caracteres)..."></textarea>
+                <div id="obsError" class="error">A observação deve ter no mínimo 120 caracteres.</div>
+            </div>
+
+            <button class="btn btn-start" onclick="confirmEnd()">✅ CONFIRMAR TÉRMINO</button>
+            <button class="btn btn-reset" onclick="cancelEnd()">↩️ Voltar</button>
+        </div>
+
+        <!-- TELA 4: RESUMO E BLOQUEIO -->
+        <div id="screenSummary" class="hidden">
+            <h2 style="text-align: center; color: #38a169; margin-bottom: 15px;">✅ DIÁRIA CONCLUÍDA</h2>
+            
+            <div class="info-box" style="flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>Data:</span> <strong id="sumDate"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>Início:</span> <strong id="sumStart"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>Término:</span> <strong id="sumEnd"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>Duração Total:</span> <strong id="sumDuration" style="color: #e53e3e;"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>KM Inicial / Final:</span> <strong id="sumKm"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <span>Total de Entregas:</span> <strong id="sumDeliveries"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Total de Caixas:</span> <strong id="sumBoxes"></strong>
+                </div>
+            </div>
+
+            <div id="sumObsContainer" class="hidden" style="margin-top: 15px; background: #fffaf0; padding: 10px; border-radius: 8px; border: 1px solid #fbd38d;">
+                <strong>⚠️ Observações:</strong>
+                <p id="sumObsText" style="margin-top: 5px; font-size: 0.9em; color: #744210;"></p>
+            </div>
+
+            <button class="btn btn-report" onclick="sendReport()" style="margin-top: 20px;">📧 ENVIAR RELATÓRIO</button>
+            <button class="btn btn-reset" onclick="resetDiary()">🔄 NOVA DIÁRIA</button>
+            
+            <p style="text-align: center; margin-top: 15px; font-size: 0.8em; color: #e53e3e; font-weight: bold;">
+                ⚠️ Sistema travado. Clique em "Nova Diária" para reiniciar.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ESTADO DA APLICAÇÃO
+        let state = {
+            isActive: false,
+            isFinished: false,
+            date: new Date().toLocaleDateString('pt-BR'),
+            startTime: null,
+            endTime: null,
+            kmInitial: '',
+            kmFinal: '',
+            deliveries: [],
+            hasObs: false,
+            observation: ''
+        };
+
+        let timerInterval;
+
+        // INICIALIZAÇÃO
+        window.onload = function() {
+            document.getElementById('currentDate').textContent = state.date;
+            loadState();
+            if (state.isActive) {
+                showScreen('screenActive');
+                startTimer();
+                renderLog();
+            } else if (state.isFinished) {
+                showScreen('screenSummary');
+                populateSummary();
+            } else {
+                showScreen('screenStart');
+            }
+        };
+
+        // FUNÇÕES DE NAVEGAÇÃO
+        function showScreen(screenId) {
+            ['screenStart', 'screenActive', 'screenEnd', 'screenSummary'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showMsg(msg) {
+            const el = document.getElementById('successMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        // LÓGICA DE INÍCIO
+        function startDiary() {
+            const km = document.getElementById('kmInitial').value;
+            if (!km) { alert('Por favor, informe o KM inicial do veículo.'); return; }
+            
+            state.isActive = true;
+            state.kmInitial = km;
+            state.startTime = new Date();
+            saveState();
+            
+            document.getElementById('displayStartTime').textContent = formatTime(state.startTime);
+            showScreen('screenActive');
+            startTimer();
+        }
+
+        // LÓGICA DE REGISTRO
+        function registerMall(mallName) {
+            const boxInput = document.getElementById('boxCount');
+            const boxes = boxInput.value;
+            
+            if (!boxes || boxes <= 0) {
+                document.getElementById('boxError').style.display = 'block';
+                return;
+            }
+            document.getElementById('boxError').style.display = 'none';
+
+            const now = new Date();
+            state.deliveries.push({
+                mall: mallName,
+                time: formatTime(now),
+                boxes: parseInt(boxes),
+                timestamp: now.getTime()
+            });
+
+            boxInput.value = ''; // Limpa a caixa
+            boxInput.focus();
+            saveState();
+            renderLog();
+            showMsg(`✅ ${mallName} registrado às ${formatTime(now)}`);
+        }
+
+        function renderLog() {
+            const list = document.getElementById('logList');
+            list.innerHTML = '';
+            // Mostra os últimos primeiro
+            [...state.deliveries].reverse().forEach(d => {
+                const li = document.createElement('li');
+                li.className = 'log-item';
+                li.innerHTML = `<span><strong>${d.mall}</strong> <small>(${d.time})</small></span> <span>${d.boxes} cx</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        // LÓGICA DE TÉRMINO
+        function showEndScreen() {
+            state.endTime = new Date();
+            document.getElementById('displayFinalDuration').textContent = calculateDuration(state.startTime, state.endTime);
+            showScreen('screenEnd');
+        }
+
+        function cancelEnd() {
+            showScreen('screenActive');
+        }
+
+        function toggleObs(show) {
+            state.hasObs = show;
+            const textarea = document.getElementById('obsText');
+            if (show) {
+                textarea.classList.remove('hidden');
+                textarea.focus();
+            } else {
+                textarea.classList.add('hidden');
+                textarea.value = '';
+                document.getElementById('obsError').style.display = 'none';
+            }
+        }
+
+        function confirmEnd() {
+            if (state.hasObs) {
+                const obs = document.getElementById('obsText').value;
+                if (obs.length < 120) {
+                    document.getElementById('obsError').style.display = 'block';
+                    return;
+                }
+                state.observation = obs;
+            }
+            
+            state.kmFinal = document.getElementById('kmFinal').value || 'Não informado';
+            state.isActive = false;
+            state.isFinished = true;
+            saveState();
+            
+            stopTimer();
+            populateSummary();
+            showScreen('screenSummary');
+        }
+
+        // RESUMO E RELATÓRIO
+        function populateSummary() {
+            document.getElementById('sumDate').textContent = state.date;
+            document.getElementById('sumStart').textContent = formatTime(state.startTime);
+            document.getElementById('sumEnd').textContent = formatTime(state.endTime);
+            document.getElementById('sumDuration').textContent = calculateDuration(state.startTime, state.endTime);
+            document.getElementById('sumKm').textContent = `${state.kmInitial} / ${state.kmFinal}`;
+            document.getElementById('sumDeliveries').textContent = state.deliveries.length;
+            
+            const totalBoxes = state.deliveries.reduce((sum, d) => sum + d.boxes, 0);
+            document.getElementById('sumBoxes').textContent = totalBoxes;
+
+            if (state.hasObs && state.observation) {
+                document.getElementById('sumObsContainer').classList.remove('hidden');
+                document.getElementById('sumObsText').textContent = state.observation;
+            } else {
+                document.getElementById('sumObsContainer').classList.add('hidden');
+            }
+        }
+
+        function sendReport() {
+            const totalBoxes = state.deliveries.reduce((sum, d) => sum + d.boxes, 0);
+            let report = `*DIÁRIO DE BORDO MOTORISTA SEAWAY*\n`;
+            report += `📅 Data: ${state.date}\n`;
+            report += `⏱️ Início: ${formatTime(state.startTime)} | Término: ${formatTime(state.endTime)}\n`;
+            report += `⏳ Duração Total: ${calculateDuration(state.startTime, state.endTime)}\n`;
+            report += `🚗 KM: ${state.kmInitial} -> ${state.kmFinal}\n\n`;
+            report += `*ENTREGAS REALIZADAS:*\n`;
+            state.deliveries.forEach(d => {
+                report += `• ${d.mall}: ${d.time} (${d.boxes} caixas)\n`;
+            });
+            report += `\n📦 *Total de Caixas:* ${totalBoxes}\n`;
+            
+            if (state.hasObs && state.observation) {
+                report += `\n⚠️ *OBSERVAÇÕES:*\n${state.observation}\n`;
+            }
+
+            const encodedReport = encodeURIComponent(report);
+            
+            // Abre WhatsApp
+            window.open(`https://wa.me/5581986668675?text=${encodedReport}`, '_blank');
+            
+            // Abre E-mail (com pequeno delay para não bloquear o navegador)
+            setTimeout(() => {
+                window.location.href = `mailto:pontoimgemrecife@gmail.com?subject=Diário de Bordo - ${state.date}&body=${encodedReport}`;
+            }, 1000);
+        }
+
+        function resetDiary() {
+            if (confirm('Tem certeza que deseja iniciar uma NOVA diária? Todos os dados de hoje serão apagados.')) {
+                state = {
+                    isActive: false,
+                    isFinished: false,
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    startTime: null,
+                    endTime: null,
+                    kmInitial: '',
+                    kmFinal: '',
+                    deliveries: [],
+                    hasObs: false,
+                    observation: ''
+                };
+                localStorage.removeItem('diarioBordoState');
+                document.getElementById('kmInitial').value = '';
+                document.getElementById('kmFinal').value = '';
+                document.getElementById('boxCount').value = '';
+                document.getElementById('obsText').value = '';
+                document.getElementById('currentDate').textContent = state.date;
+                showScreen('screenStart');
+            }
+        }
+
+        // UTILITÁRIOS
+        function formatTime(dateObj) {
+            if (!dateObj) return '--:--';
+            const d = new Date(dateObj);
+            return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function calculateDuration(start, end) {
+            if (!start || !end) return '--:--';
+            const diffMs = new Date(end) - new Date(start);
+            const diffHrs = Math.floor(diffMs / 3600000);
+            const diffMins = Math.round(((diffMs % 3600000) / 60000));
+            return `${String(diffHrs).padStart(2, '0')}:${String(diffMins).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const now = new Date();
+                document.getElementById('displayDurationActive').textContent = calculateDuration(state.startTime, now);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function saveState() {
+            localStorage.setItem('diarioBordoState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('diarioBordoState');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Verifica se é um novo dia para resetar automaticamente
+                if (parsed.date !== new Date().toLocaleDateString('pt-BR')) {
+                    localStorage.removeItem('diarioBordoState');
+                    return;
+                }
+                state = parsed;
+                // Restaura objetos Date
+                if (state.startTime) state.startTime = new Date(state.startTime);
+                if (state.endTime) state.endTime = new Date(state.endTime);
+            }
+        }
+    </script>
+</div>
+</body>
+</html>
